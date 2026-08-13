@@ -1,31 +1,38 @@
-# 🧪 Procalcitonin (PCT) Stewardship Simulation Script
-# This script simulates patient PCT kinetic clearance curves over a 7-day stay.
+# Simulating Procalcitonin (PCT) kinetics over a standard 7-day antibiotic course.
+# Built this to visualize the clinical decision-making process for stopping empiric Abx.
 
-# Load required libraries for plotting
 library(ggplot2)
 
-# 1. Create mock data for two patient scenarios
-days <- 0:7
+# Tracking days 0 to 7 (8 timepoints total). 
+# Note: Ensure the PCT arrays match this length exactly to avoid dataframe binding errors!
+tx_days <- 0:7 
 
-# Scenario A: Responding Patient (PCT drops by >80%)
-pct_responder <- c(2.5, 1.8, 0.4, 0.15, 0.08, 0.05, 0.05, 0.05)
+# Patient A: Responding well to therapy. 
+# PCT halves fairly quickly after proper source control and adequate empiric coverage.
+pct_lvl_improving <- c(2.5, 1.8, 0.4, 0.15, 0.08, 0.05, 0.05, 0.05)
 
-# Scenario B: Non-Responding Patient (Treatment Failure/Stable High PCT)
-pct_non_responder <- c(2.5, 2.7, 2.4, 2.6, 2.3, 2.5, 2.2, 2.4)
+# Patient B: Non-responder. 
+# Suspecting a resistant bug or lack of source control. PCT stays persistently elevated.
+pct_lvl_failing <- c(2.5, 2.7, 2.4, 2.6, 2.3, 2.5, 2.2, 2.4)
 
-# Combine into a clean data frame
-data_responder <- data.frame(Day = days, PCT = pct_responder, Group = "Responding Patient (>80% Drop)")
-data_non_responder <- data.frame(Day = days, PCT = pct_non_responder, Group = "Non-Responding Patient (Failure)")
-plot_data <- rbind(data_responder, data_non_responder)
+# Squishing it together into data frames for ggplot mapping
+df_clin_improving <- data.frame(Day = tx_days, PCT = pct_lvl_improving, Cohort = "Responsive (>80% Clearance)")
+df_clin_failing   <- data.frame(Day = tx_days, PCT = pct_lvl_failing, Cohort = "Refractory (Stable/High)")
 
-# 2. Generate the clinical clearance plot
-ggplot(plot_data, aes(x = Day, y = PCT, color = Group, group = Group)) +
+combined_pct_kinetics <- rbind(df_clin_improving, df_clin_failing)
+
+# Visualizing the clearance curves.
+# I always like using dashed h-lines for clinical thresholds so they pop out during ward rounds.
+ggplot(combined_pct_kinetics, aes(x = Day, y = PCT, color = Cohort, group = Cohort)) +
   geom_line(size = 1.2) +
   geom_point(size = 3) +
   scale_color_manual(values = c("red", "green4")) +
-  labs(title = "Simulated Patient Procalcitonin (PCT) Kinetics Over 7 Days",
-       x = "Hospital Admission (Days)",
-       y = "Serum PCT Concentration (ng/mL)") +
+  labs(title = "Procalcitonin (PCT) Kinetics: Stewardship De-escalation Model",
+       x = "Days Post-Admission",
+       y = "Serum PCT (ng/mL)") +
   theme_minimal() +
+  
+  # Clinical Note: 0.5 ng/mL is standard for lower RTI de-escalation (CAP/VAP), 
+  # though some aggressive protocols push for 0.25 ng/mL. Sticking with 0.5 here.
   geom_hline(yintercept = 0.5, linetype = "dashed", color = "orange") +
-  annotate("text", x = 6, y = 0.6, label = "De-escalation Threshold (0.5 ng/mL)", color = "orange")
+  annotate("text", x = 5.5, y = 0.65, label = "De-escalation Threshold (0.5 ng/mL)", color = "orange")
