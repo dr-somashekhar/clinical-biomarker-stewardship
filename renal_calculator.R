@@ -1,67 +1,110 @@
-# 🧮 Automated Renal Dosage Screening Engine
-# Based on the 2026 reference guide for renal dose adjustments.
+# =========================================================================================
+# 🧮 Clinical Pharmacokinetics: Renal Dosing Calculator
+# 
+# I wrote this script because relying on raw Actual Body Weight (ABW) in the standard 
+# Cockcroft-Gault equation often leads to supratherapeutic dosing and toxicity in 
+# obese patients. This function dynamically calculates Ideal Body Weight (IBW) and 
+# Adjusted Body Weight (AdjBW) based on standard clinical pharmacy protocols before 
+# estimating clearance.
+# =========================================================================================
 
-# Block 1: The Cockcroft-Gault Calculator Function
-calculate_crcl <- function(age, weight, creatinine, is_female) {
-  # Standard male calculation
-  base_crcl <- ((140 - age) * weight) / (72 * creatinine)
+screen_medications <- function(age_yrs, weight_kg, height_cm, scr_mgdl, sex_is_female, drug_name, prescribed_dose) {
   
-  # Apply 0.85 multiplier for female patients
-  if (is_female) {
-    return(base_crcl * 0.85)
+  # --- 1. EHR Input Validation ---
+  # Catching bad EHR data before it breaks the math. You'd be surprised how often 
+  # a patient's height is entered as 15 cm instead of 150 cm in the real world.
+  if (age_yrs < 18) stop("Clinical Error: Calculator validated for adults (18+) only. Use Schwartz equation for peds.")
+  if (weight_kg <= 20 | height_cm <= 100) stop("Data Error: Weight and height values seem clinically impossible. Check inputs.")
+  if (scr_mgdl < 0.1) stop("Data Error: Serum creatinine seems artificially low. Watch out for rounding errors.")
+  if (is.null(drug_name) | drug_name == "") stop("Script Error: Missing drug name parameter.")
+  
+  # --- 2. Anthropometric Calculations (Devine Formula) ---
+  # Convert cm to inches for the standard Devine IBW formula
+  ht_inches <- height_cm / 2.54 
+  inches_over_60 <- ifelse(ht_inches > 60, ht_inches - 60, 0)
+  
+  # Base IBW calculation
+  ibw_base <- ifelse(sex_is_female, 45.5, 50.0)
+  ibw_kg <- ibw_base + (2.3 * inches_over_60)
+  
+  # --- 3. Dosing Weight Logic ---
+  # If the patient is >20% over their IBW, ABW overestimates clearance, so we use AdjBW.
+  # If they are cachectic/underweight (ABW < IBW), we just use ABW to avoid overdosing.
+  wgt_ratio <- weight_kg / ibw_kg
+  
+  if (weight_kg < ibw_kg) {
+    dosing_wgt <- weight_kg
+    wgt_type_used <- "Actual Body Weight (Patient is Underweight)"
+    
+  } else if (wgt_ratio > 1.20) {
+    # Standard AdjBW formula with a 0.4 correction factor
+    dosing_wgt <- ibw_kg + 0.4 * (weight_kg - ibw_kg)
+    wgt_type_used <- "Adjusted Body Weight (Obese: >20% over IBW)"
+    
   } else {
-    return(base_crcl)
+    dosing_wgt <- ibw_kg
+    wgt_type_used <- "Ideal Body Weight (Within normal limits)"
   }
+  
+  # --- 4. Cockcroft-Gault Clearance Calculation ---
+  # The classic 1976 equation. Still the FDA gold standard for drug labeling!
+  crcl_raw <- ((140 - age_yrs) * dosing_wgt) / (72 * scr_mgdl)
+  crcl_final <- ifelse(sex_is_female, crcl_raw * 0.85, crcl_raw)
+  
+  # --- 5. Pharmacotherapy Stewardship Logic ---
+  # Using Cefepime as the primary test case here since it's notorious for causing 
+  # neurotoxicity/encephalopathy if it accumulates in renal failure.
+  
+  clinical_flag <- "Unreviewed"
+  rec_dose <- "Consult clinical pharmacist."
+  drug_target <- tolower(drug_name)
+  
+  if (drug_target == "cefepime") {
+    
+    # Stratifying by renal function breakpoints
+    if (crcl_final >= 50) {
+      rec_dose <- "2g IV q8h (Standard Empiric)"
+    } else if (crcl_final >= 11 & crcl_final < 50) {
+      rec_dose <- "2g IV q12h OR 1g IV q8h (Moderate Impairment)"
+    } else {
+      rec_dose <- "1g IV q24h (Severe Impairment)"
+    }
+    
+    # Final Stewardship Check against what the physician ordered
+    if (tolower(prescribed_dose) == tolower(rec_dose)) {
+      clinical_flag <- "✅ Approved: Dose matches renal clearance."
+    } else {
+      clinical_flag <- "⚠️ INTERVENTION REQUIRED: Potential Toxicity or Under-dosing."
+    }
+    
+  } else {
+    clinical_flag <- paste("No stewardship protocol built for", drug_name, "yet.")
+  }
+  
+  # --- 6. Structured Data Return ---
+  # Returning a clean, structured list rather than just printing text to the console. 
+  # This makes it infinitely easier to plug this script into a Shiny Dashboard later.
+  
+  results_payload <- list(
+    Patient_Age = age_yrs,
+    SCr_mg_dL = scr_mgdl,
+    Weight_Model_Used = wgt_type_used,
+    Calculated_Dosing_Weight = round(dosing_wgt, 1),
+    Estimated_CrCl_mL_min = round(crcl_final, 1),
+    Target_Drug = drug_name,
+    Physician_Order = prescribed_dose,
+    Guideline_Recommendation = rec_dose,
+    Stewardship_Action = clinical_flag
+  )
+  
+  return(results_payload)
 }
 
-# Block 2 & 3: The Screening & Alert Flag Engine
-screen_medications <- function(age, weight, creatinine, is_female, drug_name, prescribed_dose) {
-  
-  # Calculate patient's renal clearance
-  crcl <- calculate_crcl(age, weight, creatinine, is_female)
-  
-  cat(sprintf("\n=== Clinical Renal Screening Report ===\n"))
-  cat(sprintf("Calculated Creatinine Clearance: %.2f mL/min\n", crcl))
-  cat(sprintf("Medication Checked: %s (%d mg/day)\n", drug_name, prescribed_dose))
-  cat("----------------------------------------\n")
-  
-  # Logic rules for Metformin 💊
-  if (tolower(drug_name) == "metformin") {
-    if (crcl < 30) {
-      cat("⚠️ ALERT: Metformin is CONTRAINDICATED when CrCl < 30 mL/min.\n")
-      cat("❌ CRITICAL RISK: High risk of lactic acidosis. Discontinue immediately.\n")
-    } else if (crcl >= 30 && crcl <= 44) {
-      if (prescribed_dose > 1000) {
-        cat("⚠️ WARNING: Max recommended Metformin dose for CrCl 30-44 mL/min is 1000 mg/day.\n")
-        cat(sprintf("🛑 ACTION REQUIRED: Reduce dose from %d mg to 1000 mg/day.\n", prescribed_dose))
-      } else {
-        cat("✅ Safe: Metformin dose is appropriate for this renal tier.\n")
-      }
-    } else {
-      cat("✅ Safe: Renal clearance is sufficient for standard Metformin dosing.\n")
-    }
-  }
-  
-  # Logic rules for Memantine 🧠
-  else if (tolower(drug_name) == "memantine") {
-    if (crcl < 5) {
-      cat("⚠️ ALERT: Advanced renal failure. Avoid Memantine or use with extreme caution.\n")
-    } else if (crcl >= 5 && crcl <= 29) {
-      if (prescribed_dose > 100) { # Adjusted target threshold check
-        cat("⚠️ WARNING: Max recommended Memantine dose for CrCl 5-29 mL/min is 10 mg/day.\n")
-        cat(sprintf("🛑 ACTION REQUIRED: Reduce dose from %d mg to 10 mg/day strictly.\n", prescribed_dose))
-      } else {
-        cat("✅ Safe: Memantine dose is within safe parameters.\n")
-      }
-    } else {
-      cat("✅ Safe: Memantine dose is safe for standard clearance.\n")
-    }
-  } else {
-    cat("ℹ️ Info: Medication thresholds not configured in baseline setup.\n")
-  }
-}
-
-# --- Test Case Execution ---
-# Scenario: 75-year-old female, 60kg, serum creatinine 1.8 mg/dL (Advanced CKD)
-# Current Prescription: Metformin 1500 mg/day
-screen_medications(age = 75, weight = 60, creatinine = 1.8, is_female = TRUE, drug_name = "Metformin", prescribed_dose = 1500)
+# -----------------------------------------------------------------------------------------
+# Test Case (Uncomment to run): 
+# 68yo Female, 105kg, 160cm tall, SCr 1.8. Ordered: Cefepime 2g q8h.
+# -----------------------------------------------------------------------------------------
+# test_patient <- screen_medications(age_yrs = 68, weight_kg = 105, height_cm = 160, 
+#                                    scr_mgdl = 1.8, sex_is_female = TRUE, 
+#                                    drug_name = "Cefepime", prescribed_dose = "2g IV q8h")
+# print(test_patient)
