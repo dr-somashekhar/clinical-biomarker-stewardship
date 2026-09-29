@@ -9,7 +9,8 @@ Description: Kinetic simulation, rule-based renal dose screening and risk
     resource-limited wards. Research and educational use only; not a
     medical device.
 License: MIT + file LICENSE
-URL: https://github.com/dr-somashekhar/clinical-biomarker-stewardship
+URL: https://github.com/dr-somashekhar/clinical-biomarker-stewardship,
+    https://dr-somashekhar.github.io/clinical-biomarker-stewardship/
 BugReports: https://github.com/dr-somashekhar/clinical-biomarker-stewardship/issues
 Encoding: UTF-8
 Depends:
@@ -19,7 +20,10 @@ Imports:
     ggplot2 (>= 3.4.0),
     rlang
 Suggests:
+    knitr,
+    rmarkdown,
     testthat (>= 3.0.0)
+VignetteBuilder: knitr
 Config/testthat/edition: 3
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.1

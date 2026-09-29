@@ -39,22 +39,10 @@ pct_kinetics_example <- function() {
 #' @export
 plot_pct_kinetics <- function(kinetics = pct_kinetics_example(), stop_drop = 0.80,
                               abs_stop = pct_cutoffs[[2]]) {
-  missing_cols <- setdiff(c("Patient", "Day", "PCT"), names(kinetics))
-  if (length(missing_cols) > 0L) {
-    stop("Missing required column(s): ", paste(missing_cols, collapse = ", "), call. = FALSE)
-  }
-  kinetics <- kinetics[order(kinetics$Patient, kinetics$Day), , drop = FALSE]
-
-  met_label   <- "Stop rule met"
-  unmet_label <- "Stop rule not met"
-  stop_met <- vapply(split(kinetics$PCT, kinetics$Patient),
-                     function(p) pct_decline_from_peak(p, stop_drop, abs_stop)$stop_signal,
-                     logical(1))
-  kinetics$Outcome <- factor(ifelse(stop_met[kinetics$Patient], met_label, unmet_label),
-                             levels = c(met_label, unmet_label))
+  kinetics <- label_stop_outcome(kinetics, stop_drop, abs_stop)
 
   # Named Okabe-Ito colours: colour-blind safe, and not dependent on factor order.
-  outcome_cols <- stats::setNames(c("#0072B2", "#D55E00"), c(met_label, unmet_label))
+  outcome_cols <- stats::setNames(c("#0072B2", "#D55E00"), stop_outcome_levels)
   likely_cutoff <- pct_cutoffs[[3]]
 
   ggplot2::ggplot(kinetics, ggplot2::aes(x = .data$Day, y = .data$PCT,
@@ -77,4 +65,24 @@ plot_pct_kinetics <- function(kinetics = pct_kinetics_example(), stop_drop = 0.8
       color = NULL
     ) +
     ggplot2::theme_minimal()
+}
+
+stop_outcome_levels <- c("Stop rule met", "Stop rule not met")
+
+# Sorts by patient and day and adds an `Outcome` factor saying whether each
+# patient's series meets the stop rule. Kept separate from the plot so it can
+# be tested without reaching into ggplot internals.
+label_stop_outcome <- function(kinetics, stop_drop, abs_stop) {
+  missing_cols <- setdiff(c("Patient", "Day", "PCT"), names(kinetics))
+  if (length(missing_cols) > 0L) {
+    stop("Missing required column(s): ", paste(missing_cols, collapse = ", "), call. = FALSE)
+  }
+  kinetics <- kinetics[order(kinetics$Patient, kinetics$Day), , drop = FALSE]
+  stop_met <- vapply(split(kinetics$PCT, kinetics$Patient),
+                     function(p) pct_decline_from_peak(p, stop_drop, abs_stop)$stop_signal,
+                     logical(1))
+  kinetics$Outcome <- factor(ifelse(stop_met[kinetics$Patient],
+                                    stop_outcome_levels[[1]], stop_outcome_levels[[2]]),
+                             levels = stop_outcome_levels)
+  kinetics
 }

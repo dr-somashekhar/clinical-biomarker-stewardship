@@ -41,36 +41,7 @@ build_stewardship_heatmap <- function(clinical_data, min_cell_n = 5L) {
     return(ggplot2::ggplot() + ggplot2::theme_void() +
              ggplot2::ggtitle("Waiting for patient data..."))
   }
-  required <- c("Patient_ID", "Time_Hour", "PCT_Level", "Baseline_SOFA", "Mortality_30D")
-  missing_cols <- setdiff(required, names(clinical_data))
-  if (length(missing_cols) > 0L) {
-    stop("Missing required column(s): ", paste(missing_cols, collapse = ", "), call. = FALSE)
-  }
-  if (any(clinical_data$PCT_Level < 0, na.rm = TRUE)) {
-    stop("Negative PCT values found; check units/ETL.", call. = FALSE)
-  }
-
-  # Squishing admission PCT and SOFA into clinical buckets, one row per patient.
-  # This makes the heatmap look like an actionable grid instead of a messy scatterplot.
-  cells <- clinical_data |>
-    dplyr::filter(.data$Time_Hour == 0) |>
-    dplyr::distinct(.data$Patient_ID, .keep_all = TRUE) |>
-    dplyr::mutate(
-      pct_bucket = cut(.data$PCT_Level, breaks = c(0, pct_cutoffs, 2, Inf), right = FALSE,
-                       labels = c("<0.1", "0.1-<0.25", "0.25-<0.5", "0.5-<2", ">=2")),
-      sofa_bucket = cut(.data$Baseline_SOFA, breaks = c(0, 4, 7, 10, 25), right = FALSE,
-                        labels = c("0-3", "4-6", "7-9", "10-24"))
-    ) |>
-    dplyr::filter(!is.na(.data$pct_bucket), !is.na(.data$sofa_bucket),
-                  !is.na(.data$Mortality_30D)) |>
-    dplyr::group_by(.data$sofa_bucket, .data$pct_bucket, .drop = FALSE) |>
-    dplyr::summarise(n = dplyr::n(), deaths = sum(.data$Mortality_30D), .groups = "drop") |>
-    dplyr::mutate(
-      risk_pct = dplyr::if_else(.data$n >= min_cell_n, 100 * .data$deaths / .data$n, NA_real_),
-      label    = dplyr::if_else(is.na(.data$risk_pct),
-                                paste0("n=", .data$n, "\n(suppressed)"),
-                                sprintf("%.1f%%\nn=%d", .data$risk_pct, .data$n))
-    )
+  cells <- heatmap_cells(clinical_data, min_cell_n)
 
   ggplot2::ggplot(cells, ggplot2::aes(x = .data$pct_bucket, y = .data$sofa_bucket,
                                       fill = .data$risk_pct)) +
@@ -95,5 +66,41 @@ build_stewardship_heatmap <- function(clinical_data, min_cell_n = 5L) {
     ggplot2::theme(
       panel.grid = ggplot2::element_blank(),
       plot.title = ggplot2::element_text(face = "bold", size = 15)
+    )
+}
+
+# One row per PCT band x SOFA band, with n, deaths, risk_pct (NA when
+# suppressed) and the tile label. Kept separate from the plot so the numbers
+# can be tested without reaching into ggplot internals.
+heatmap_cells <- function(clinical_data, min_cell_n) {
+  required <- c("Patient_ID", "Time_Hour", "PCT_Level", "Baseline_SOFA", "Mortality_30D")
+  missing_cols <- setdiff(required, names(clinical_data))
+  if (length(missing_cols) > 0L) {
+    stop("Missing required column(s): ", paste(missing_cols, collapse = ", "), call. = FALSE)
+  }
+  if (any(clinical_data$PCT_Level < 0, na.rm = TRUE)) {
+    stop("Negative PCT values found; check units/ETL.", call. = FALSE)
+  }
+
+  # Squishing admission PCT and SOFA into clinical buckets, one row per patient.
+  # This makes the heatmap look like an actionable grid instead of a messy scatterplot.
+  clinical_data |>
+    dplyr::filter(.data$Time_Hour == 0) |>
+    dplyr::distinct(.data$Patient_ID, .keep_all = TRUE) |>
+    dplyr::mutate(
+      pct_bucket = cut(.data$PCT_Level, breaks = c(0, pct_cutoffs, 2, Inf), right = FALSE,
+                       labels = c("<0.1", "0.1-<0.25", "0.25-<0.5", "0.5-<2", ">=2")),
+      sofa_bucket = cut(.data$Baseline_SOFA, breaks = c(0, 4, 7, 10, 25), right = FALSE,
+                        labels = c("0-3", "4-6", "7-9", "10-24"))
+    ) |>
+    dplyr::filter(!is.na(.data$pct_bucket), !is.na(.data$sofa_bucket),
+                  !is.na(.data$Mortality_30D)) |>
+    dplyr::group_by(.data$sofa_bucket, .data$pct_bucket, .drop = FALSE) |>
+    dplyr::summarise(n = dplyr::n(), deaths = sum(.data$Mortality_30D), .groups = "drop") |>
+    dplyr::mutate(
+      risk_pct = dplyr::if_else(.data$n >= min_cell_n, 100 * .data$deaths / .data$n, NA_real_),
+      label    = dplyr::if_else(is.na(.data$risk_pct),
+                                paste0("n=", .data$n, "\n(suppressed)"),
+                                sprintf("%.1f%%\nn=%d", .data$risk_pct, .data$n))
     )
 }

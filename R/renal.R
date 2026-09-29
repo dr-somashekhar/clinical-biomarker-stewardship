@@ -45,6 +45,22 @@ assert_number <- function(x, name, lower, upper) {
   invisible(x)
 }
 
+# Validates every screen_medications() input before any math runs.
+assert_patient_inputs <- function(age_yrs, weight_kg, height_cm, scr_mgdl, sex_is_female,
+                                  drug_name) {
+  assert_number(age_yrs,   "age_yrs",   18,  120)
+  assert_number(weight_kg, "weight_kg", 20,  350)
+  assert_number(height_cm, "height_cm", 100, 250)
+  assert_number(scr_mgdl,  "scr_mgdl",  0.1, 20)
+  if (!is.logical(sex_is_female) || length(sex_is_female) != 1L || is.na(sex_is_female)) {
+    stop("`sex_is_female` must be TRUE or FALSE.", call. = FALSE)
+  }
+  valid_drug <- is.character(drug_name) && length(drug_name) == 1L &&
+    !is.na(drug_name) && nzchar(trimws(drug_name))
+  if (!valid_drug) stop("`drug_name` must be a single non-empty string.", call. = FALSE)
+  invisible(TRUE)
+}
+
 #' Ideal body weight (Devine formula)
 #'
 #' Patients at or below 60 inches (152.4 cm) get the base weight only; the
@@ -130,17 +146,7 @@ recommend_regimen <- function(drug, crcl, rules = renal_dose_rules) {
 screen_medications <- function(age_yrs, weight_kg, height_cm, scr_mgdl, sex_is_female,
                                drug_name, prescribed_regimen_id,
                                rules = renal_dose_rules) {
-  assert_number(age_yrs,   "age_yrs",   18,  120)
-  assert_number(weight_kg, "weight_kg", 20,  350)
-  assert_number(height_cm, "height_cm", 100, 250)
-  assert_number(scr_mgdl,  "scr_mgdl",  0.1, 20)
-  if (!is.logical(sex_is_female) || length(sex_is_female) != 1L || is.na(sex_is_female)) {
-    stop("`sex_is_female` must be TRUE or FALSE.", call. = FALSE)
-  }
-  if (!is.character(drug_name) || length(drug_name) != 1L ||
-      is.na(drug_name) || !nzchar(trimws(drug_name))) {
-    stop("`drug_name` must be a single non-empty string.", call. = FALSE)
-  }
+  assert_patient_inputs(age_yrs, weight_kg, height_cm, scr_mgdl, sex_is_female, drug_name)
 
   ibw  <- ideal_body_weight(height_cm, sex_is_female)
   dw   <- dosing_weight(weight_kg, ibw)

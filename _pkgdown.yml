@@ -1,0 +1,29 @@
+url: https://dr-somashekhar.github.io/clinical-biomarker-stewardship/
+
+template:
+  bootstrap: 5
+
+reference:
+  - title: PCT algorithm
+    contents:
+      - pct_cutoffs
+      - classify_pct
+      - pct_clearance
+      - pct_decline_from_peak
+      - asp_recommendation
+  - title: Renal dose screening
+    contents:
+      - screen_medications
+      - renal_dose_rules
+      - recommend_regimen
+      - cockcroft_gault
+      - dosing_weight
+      - ideal_body_weight
+  - title: Visualisation
+    contents:
+      - build_stewardship_heatmap
+      - plot_pct_kinetics
+      - pct_kinetics_example
+  - title: Synthetic data
+    contents:
+      - simulate_cohort

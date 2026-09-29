@@ -30,3 +30,7 @@ Rplots.pdf
 *.rds
 *.rda
 !inst/extdata/synthetic_*.csv
+
+# pkgdown site and built vignettes
+docs/
+inst/doc/

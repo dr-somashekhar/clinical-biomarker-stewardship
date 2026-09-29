@@ -3,15 +3,16 @@
 First, thank you for considering contributing to this project! Open-source collaboration is the foundation of reproducible translational research.
 
 ## 🔬 Scope of Contributions
-We welcome contributions that improve the computational efficiency, statistical rigor, or clinical relevance of this pipeline. This includes:
-* Enhancing machine learning/deep learning model architectures.
-* Adding support for new clinical covariates or omics data structures.
-* Bug fixes in biostatistical formulas or deployment scripts.
+We welcome contributions that improve the clinical accuracy, statistical rigor, or usability of this package. This includes:
+* New renal dosing protocols (rows in `renal_dose_rules`) with a cited source.
+* Refinements to the PCT algorithm (`R/pct_algorithm.R`) backed by published evidence.
+* Improvements to the synthetic cohort generator, visualisations and documentation.
+* Bug fixes in clinical formulas, with a test that reproduces the bug.
 
 ## 🛠️ Pull Request (PR) Process
 1. **Fork** the repository and create your feature branch (`git checkout -b feature/Advanced-Imputation`).
 2. **Commit** your changes with descriptive messages (`git commit -m 'Added Random Forest imputation method'`).
-3. **Test** your code. Run `devtools::document()`, `devtools::test()` and `devtools::check()` from the repo root; all must pass without errors or warnings. Ensure any added statistical models converge properly and do not introduce data leakage.
+3. **Test** your code. Run `devtools::document()`, `devtools::test()`, `devtools::check()` and `lintr::lint_package()` from the repo root; all must pass without errors, warnings or lints (CI enforces this, plus 90% test coverage). Ensure any added statistical models converge properly and do not introduce data leakage.
 4. **Push** to the branch (`git push origin feature/Advanced-Imputation`).
 5. **Open a Pull Request** against the `main` branch. 
 

@@ -14,9 +14,12 @@ test_that("obese elderly female uses AdjBW and is flagged for 2g q8h", {
 })
 
 test_that("weight model selection covers ABW, IBW and AdjBW", {
-  expect_equal(screen_medications(40, 50, 175, 1, FALSE, "cefepime", "2g_q8h")$weight_model, "ABW")
-  expect_equal(screen_medications(40, 72, 175, 1, FALSE, "cefepime", "2g_q8h")$weight_model, "IBW")
-  expect_equal(screen_medications(40, 120, 175, 1, FALSE, "cefepime", "2g_q8h")$weight_model, "AdjBW")
+  model_for <- function(weight_kg) {
+    screen_medications(40, weight_kg, 175, 1, FALSE, "cefepime", "2g_q8h")$weight_model
+  }
+  expect_equal(model_for(50), "ABW")
+  expect_equal(model_for(72), "IBW")
+  expect_equal(model_for(120), "AdjBW")
 })
 
 test_that("CrCl band lower bounds are inclusive", {
@@ -49,5 +52,6 @@ test_that("Devine IBW floors at base weight for short patients", {
 test_that("helpers are vectorised for cohort screening", {
   ibw <- ideal_body_weight(c(160, 175), c(TRUE, FALSE))
   expect_length(ibw, 2)
-  expect_length(cockcroft_gault(c(40, 70), dosing_weight(c(60, 110), ibw), c(1, 2), c(TRUE, FALSE)), 2)
+  crcl <- cockcroft_gault(c(40, 70), dosing_weight(c(60, 110), ibw), c(1, 2), c(TRUE, FALSE))
+  expect_length(crcl, 2)
 })

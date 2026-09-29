@@ -6,19 +6,25 @@ make_long <- function() {
 }
 
 test_that("empty or NULL data returns a placeholder plot", {
-  expect_s3_class(build_stewardship_heatmap(NULL), "ggplot")
-  expect_s3_class(build_stewardship_heatmap(data.frame()), "ggplot")
+  expect_true(inherits(build_stewardship_heatmap(NULL), "ggplot"))
+  expect_true(inherits(build_stewardship_heatmap(data.frame()), "ggplot"))
+})
+
+test_that("heatmap builds on valid data", {
+  p <- build_stewardship_heatmap(make_long())
+  expect_true(inherits(p, "ggplot"))
+  expect_no_error(ggplot2::ggplot_build(p))
 })
 
 test_that("counts patients, not rows, and keeps PCT = 0", {
-  d <- build_stewardship_heatmap(make_long())$data
+  d <- heatmap_cells(make_long(), min_cell_n = 5)
   expect_equal(sum(d$n), 10)
   expect_equal(d$n[d$pct_bucket == "<0.1" & d$sofa_bucket == "4-6"], 1)
   expect_equal(d$n[d$pct_bucket == ">=2" & d$sofa_bucket == "4-6"], 9)
 })
 
 test_that("every band combination is drawn, and small cells are suppressed", {
-  d <- build_stewardship_heatmap(make_long())$data
+  d <- heatmap_cells(make_long(), min_cell_n = 5)
   expect_equal(nrow(d), 5 * 4)
   expect_true(all(is.na(d$risk_pct[d$n < 5])))
   expect_equal(d$risk_pct[d$pct_bucket == ">=2" & d$sofa_bucket == "4-6"], 0)
@@ -26,7 +32,7 @@ test_that("every band combination is drawn, and small cells are suppressed", {
 })
 
 test_that("min_cell_n is configurable", {
-  d <- build_stewardship_heatmap(make_long(), min_cell_n = 1)$data
+  d <- heatmap_cells(make_long(), min_cell_n = 1)
   expect_equal(d$risk_pct[d$pct_bucket == "<0.1" & d$sofa_bucket == "4-6"], 100)
 })
 
@@ -38,6 +44,6 @@ test_that("missing columns and negative PCT error clearly", {
 })
 
 test_that("works end to end on a simulated cohort", {
-  d <- build_stewardship_heatmap(simulate_cohort(n = 200, seed = 1))$data
+  d <- heatmap_cells(simulate_cohort(n = 200, seed = 1), min_cell_n = 5)
   expect_equal(sum(d$n), 200)
 })

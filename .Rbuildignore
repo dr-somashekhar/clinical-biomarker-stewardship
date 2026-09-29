@@ -9,3 +9,8 @@
 ^renv$
 ^renv\.lock$
 ^output$
+^\.lintr$
+^_pkgdown\.yml$
+^docs$
+^pkgdown$
+^CITATION\.cff$
