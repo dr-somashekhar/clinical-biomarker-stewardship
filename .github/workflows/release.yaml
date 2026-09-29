@@ -1,0 +1,60 @@
+name: release
+
+# Push a tag matching the DESCRIPTION version (e.g. v0.1.0) to publish a
+# GitHub release with the built source package attached.
+on:
+  push:
+    tags: ['v*.*.*']
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: r-lib/actions/setup-pandoc@v2
+
+      - uses: r-lib/actions/setup-r@v2
+        with:
+          use-public-rspm: true
+
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: any::rcmdcheck
+          needs: check
+
+      - name: Check tag matches DESCRIPTION version
+        shell: Rscript {0}
+        run: |
+          version <- read.dcf("DESCRIPTION", fields = "Version")[[1]]
+          tag <- sub("^v", "", Sys.getenv("GITHUB_REF_NAME"))
+          if (!identical(tag, version)) {
+            stop(sprintf("Tag v%s does not match DESCRIPTION Version %s", tag, version))
+          }
+
+      - uses: r-lib/actions/check-r-package@v2
+        with:
+          error-on: '"warning"'
+
+      - name: Build source package
+        run: R CMD build .
+
+      - name: Extract release notes from NEWS.md
+        shell: Rscript {0}
+        run: |
+          news <- readLines("NEWS.md")
+          heads <- grep("^# ", news)
+          end <- if (length(heads) > 1) heads[2] - 1 else length(news)
+          writeLines(news[(heads[1] + 1):end], "release-notes.md")
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          body_path: release-notes.md
+          files: pctsteward_*.tar.gz

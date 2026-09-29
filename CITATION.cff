@@ -1,0 +1,21 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+type: software
+title: "pctsteward: Procalcitonin-Guided Antibiotic Stewardship Decision Support"
+abstract: >-
+  Kinetic simulation, rule-based renal dose screening and risk visualisation
+  for procalcitonin-guided antimicrobial stewardship in resource-limited wards.
+authors:
+  - family-names: Pulamarasetti
+    given-names: Soma Sekhar
+version: 0.1.0
+license: MIT
+repository-code: "https://github.com/dr-somashekhar/clinical-biomarker-stewardship"
+url: "https://dr-somashekhar.github.io/clinical-biomarker-stewardship/"
+keywords:
+  - procalcitonin
+  - antimicrobial stewardship
+  - antibiotic de-escalation
+  - renal dosing
+  - Cockcroft-Gault
+  - R

@@ -1,0 +1,11 @@
+# Dependabot has no CRAN ecosystem; R dependencies are declared in DESCRIPTION
+# and resolved fresh on every CI run. This keeps the Actions themselves current.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns: ["*"]

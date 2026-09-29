@@ -1,0 +1,30 @@
+Package: pctsteward
+Title: Procalcitonin-Guided Antibiotic Stewardship Decision Support
+Version: 0.1.0
+Authors@R:
+    person("Soma Sekhar", "Pulamarasetti", , "soma.sekhar@meu.edu.in",
+           role = c("aut", "cre"))
+Description: Kinetic simulation, rule-based renal dose screening and risk
+    visualisation for procalcitonin-guided antimicrobial stewardship in
+    resource-limited wards. Research and educational use only; not a
+    medical device.
+License: MIT + file LICENSE
+URL: https://github.com/dr-somashekhar/clinical-biomarker-stewardship,
+    https://dr-somashekhar.github.io/clinical-biomarker-stewardship/
+BugReports: https://github.com/dr-somashekhar/clinical-biomarker-stewardship/issues
+Encoding: UTF-8
+Depends:
+    R (>= 4.1.0)
+Imports:
+    dplyr (>= 1.1.0),
+    ggplot2 (>= 3.4.0),
+    rlang
+Suggests:
+    knitr,
+    rmarkdown,
+    shiny (>= 1.7.0),
+    testthat (>= 3.1.7)
+VignetteBuilder: knitr
+Config/testthat/edition: 3
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.1
