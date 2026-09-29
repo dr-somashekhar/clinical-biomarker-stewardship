@@ -8,3 +8,4 @@
 ^SECURITY\.md$
 ^renv$
 ^renv\.lock$
+^output$

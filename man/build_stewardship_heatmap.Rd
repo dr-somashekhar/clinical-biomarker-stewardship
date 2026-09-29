@@ -4,18 +4,31 @@
 \alias{build_stewardship_heatmap}
 \title{PCT vs. SOFA mortality risk heatmap}
 \usage{
-build_stewardship_heatmap(clinical_data)
+build_stewardship_heatmap(clinical_data, min_cell_n = 5L)
 }
 \arguments{
-\item{clinical_data}{Data frame with columns \code{PCT_Level}, \code{Baseline_SOFA}
-and \code{Mortality_30D} (see \code{DATA_DICTIONARY.md}).}
+\item{clinical_data}{Data frame with columns \code{Patient_ID}, \code{Time_Hour},
+\code{PCT_Level}, \code{Baseline_SOFA} and \code{Mortality_30D}.}
+
+\item{min_cell_n}{Minimum patients per cell before its mortality is shown.}
 }
 \value{
 A ggplot object. A placeholder plot is returned when
 \code{clinical_data} is \code{NULL} or empty, so the app doesn't crash on load.
 }
 \description{
-Buckets continuous PCT and SOFA scores into clinical bands and colours each
-cell by mean 30-day mortality, using a traffic-light scheme familiar to
-ward staff.
+Buckets admission PCT and baseline SOFA into clinical bands and colours each
+cell by observed 30-day mortality.
+}
+\details{
+Input is long format (one row per patient per \code{Time_Hour}, see
+\code{DATA_DICTIONARY.md}). Only the admission row (\code{Time_Hour == 0}) of each
+patient is used, so every patient is counted once. PCT bands follow
+\link{pct_cutoffs}, with an extra 2 ng/mL band for severity. Every band
+combination is drawn, empty ones included, and each tile shows its \code{n}.
+Cells with fewer than \code{min_cell_n} patients show no percentage: small cells
+give unstable estimates and can re-identify individuals.
+}
+\examples{
+build_stewardship_heatmap(simulate_cohort(n = 300, seed = 2026))
 }
