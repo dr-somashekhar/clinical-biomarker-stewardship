@@ -43,6 +43,7 @@ flowchart LR
   S --> L[build_stewardship_heatmap]
   E --> M[plot_pct_kinetics]
   T[(pct_cutoffs)] -.-> B & L & M
+  APP[run_app Shiny dashboard] --> D & K & L & M
 ```
 
 ## Installation
@@ -105,6 +106,16 @@ To save the PCT kinetics figure to `output/pct_kinetics.png`:
 Rscript inst/scripts/pct_simulation.R
 ```
 
+## Shiny App
+An interactive dashboard with three tabs: the PCT stop rule for one patient's serial values, renal dose screening for one order, and the PCT × SOFA risk heatmap for a simulated or uploaded cohort.
+
+```r
+install.packages("shiny")   # the app's only extra dependency
+pctsteward::run_app()
+```
+
+To deploy to Shiny Server, shinyapps.io or Posit Connect, install the package on the server from GitHub (`remotes::install_github("dr-somashekhar/clinical-biomarker-stewardship")`) and point it at `inst/app/`. Uploaded CSVs stay in the R session's memory and are never written to disk by the app, but upload synthetic or fully de-identified data only.
+
 ## Repository Contents
 | Path | Purpose |
 | :--- | :--- |
@@ -113,6 +124,8 @@ Rscript inst/scripts/pct_simulation.R
 | `R/heatmap.R` | Admission PCT × baseline SOFA mortality heatmap with small-cell suppression (`build_stewardship_heatmap()`) |
 | `R/simulate.R` | Synthetic long-format cohort generator (`simulate_cohort()`) |
 | `R/simulation.R` | PCT kinetics plot coloured by the stop rule (`plot_pct_kinetics()`) |
+| `R/app.R` | Shiny dashboard (`run_app()`), one module per tab |
+| `inst/app/app.R` | Deployment entry point for the Shiny app |
 | `inst/scripts/pct_simulation.R` | Saves the kinetics figure for a responder and a non-responder |
 | `tests/testthat/` | Unit tests |
 | `vignettes/` | End-to-end workflow vignette |

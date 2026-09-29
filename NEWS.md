@@ -13,6 +13,9 @@ First packaged release.
   `cockcroft_gault()` and `recommend_regimen()`, driven by the
   `renal_dose_rules` table.
 * Vignette: "PCT-guided stewardship workflow".
+* `run_app()` launches a Shiny dashboard with tabs for the PCT stop rule,
+  renal dose screening and the cohort risk heatmap (simulated or uploaded
+  data). `shiny` is a suggested dependency.
 
 ## Bug fixes
 

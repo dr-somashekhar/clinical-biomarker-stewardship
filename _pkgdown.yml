@@ -24,6 +24,9 @@ reference:
       - build_stewardship_heatmap
       - plot_pct_kinetics
       - pct_kinetics_example
+  - title: Shiny app
+    contents:
+      - run_app
   - title: Synthetic data
     contents:
       - simulate_cohort
