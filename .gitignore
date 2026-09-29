@@ -1,0 +1,32 @@
+# R session / IDE
+.Rproj.user/
+.Rhistory
+.RData
+.Ruserdata
+.Renviron
+.env
+
+# Package build / check output
+*.Rcheck/
+*.tar.gz
+
+# renv
+renv/library/
+renv/local/
+renv/staging/
+
+# Rendered output
+/output/
+Rplots.pdf
+
+# Never commit patient-level data; only named synthetic fixtures are allowed
+*.csv
+*.xlsx
+*.xls
+*.sav
+*.dta
+*.sas7bdat
+*.parquet
+*.rds
+*.rda
+!inst/extdata/synthetic_*.csv

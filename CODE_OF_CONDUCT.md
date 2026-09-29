@@ -16,4 +16,7 @@ Examples of unacceptable behavior by participants include:
 * Public or private harassment.
 
 ## Enforcement
-Instances of abusive, harassing, or otherwise unacceptable behavior may be reported by contacting the project maintainer. All complaints will be reviewed and investigated and will result in a response that is deemed necessary and appropriate to the circumstances.
+Instances of abusive, harassing, or otherwise unacceptable behavior may be reported by contacting the project maintainer, [@dr-somashekhar](https://github.com/dr-somashekhar), via the contact details on their GitHub profile. All complaints will be reviewed and investigated and will result in a response that is deemed necessary and appropriate to the circumstances.
+
+## Attribution
+This Code of Conduct is adapted from the [Contributor Covenant](https://www.contributor-covenant.org), version 2.1, available at <https://www.contributor-covenant.org/version/2/1/code_of_conduct.html>, licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).

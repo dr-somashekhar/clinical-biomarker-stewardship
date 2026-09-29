@@ -1,5 +1,6 @@
 # Simulating Procalcitonin (PCT) kinetics over a standard 7-day antibiotic course.
 # Built this to visualize the clinical decision-making process for stopping empiric Abx.
+# Run from the repo root: Rscript inst/scripts/pct_simulation.R
 
 library(ggplot2)
 
@@ -24,11 +25,13 @@ combined_pct_kinetics <- rbind(df_clin_improving, df_clin_failing)
 # Visualizing the clearance curves.
 # I always like using dashed h-lines for clinical thresholds so they pop out during ward rounds.
 ggplot(combined_pct_kinetics, aes(x = Day, y = PCT, color = Cohort, group = Cohort)) +
-  geom_line(size = 1.2) +
+  geom_line(linewidth = 1.2) +
   geom_point(size = 3) +
-  scale_color_manual(values = c("red", "green4")) +
+  # Named Okabe-Ito colours: colour-blind safe, and not dependent on factor order.
+  scale_color_manual(values = c("Responsive (>80% Clearance)" = "#0072B2",
+                                "Refractory (Stable/High)"    = "#D55E00")) +
   labs(title = "Procalcitonin (PCT) Kinetics: Stewardship De-escalation Model",
-       x = "Days Post-Admission",
+       x = "Day of Antibiotic Therapy",
        y = "Serum PCT (ng/mL)") +
   theme_minimal() +
   

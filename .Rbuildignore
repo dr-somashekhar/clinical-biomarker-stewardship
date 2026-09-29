@@ -1,0 +1,10 @@
+^\.github$
+^.*\.Rproj$
+^\.Rproj\.user$
+^LICENSE\.md$
+^CODE_OF_CONDUCT\.md$
+^CONTRIBUTING\.md$
+^DATA_DICTIONARY\.md$
+^SECURITY\.md$
+^renv$
+^renv\.lock$
