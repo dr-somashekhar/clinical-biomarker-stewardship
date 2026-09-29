@@ -15,7 +15,9 @@ First packaged release.
 * Vignette: "PCT-guided stewardship workflow".
 * `run_app()` launches a Shiny dashboard with tabs for the PCT stop rule,
   renal dose screening and the cohort risk heatmap (simulated or uploaded
-  data). `shiny` is a suggested dependency.
+  data). It opens in the system browser however it is called (console,
+  sourced script or `Rscript`); `run_app(launch = FALSE)` returns the app
+  object for deployment. `shiny` is a suggested dependency.
 
 ## Bug fixes
 

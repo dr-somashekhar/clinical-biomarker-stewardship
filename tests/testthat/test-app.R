@@ -8,8 +8,15 @@ test_that("parse_pct_input accepts common separators and rejects junk", {
   expect_error(parse_pct_input("1.2, abc, 0.4"), "abc")
 })
 
+test_that("run_app launches in the browser by default", {
+  launched <- NULL
+  local_mocked_bindings(launch_in_browser = function(app) launched <<- app)
+  expect_null(run_app())
+  expect_s3_class(launched, "shiny.appobj")
+})
+
 test_that("run_app builds an app object and the UI renders", {
-  expect_s3_class(run_app(), "shiny.appobj")
+  expect_s3_class(run_app(launch = FALSE), "shiny.appobj")
   html <- as.character(app_ui())
   expect_match(html, "Research and educational use only")
   expect_match(html, "PCT stop rule")

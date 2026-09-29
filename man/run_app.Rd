@@ -4,14 +4,18 @@
 \alias{run_app}
 \title{Run the stewardship Shiny app}
 \usage{
-run_app(...)
+run_app(launch = TRUE, ...)
 }
 \arguments{
+\item{launch}{If \code{TRUE} (the default), start the app and open it in the
+browser. If \code{FALSE}, return the app object without starting it, as
+needed by Shiny Server, shinyapps.io and Posit Connect.}
+
 \item{...}{Passed to \code{\link[shiny:shinyApp]{shiny::shinyApp()}}, e.g. \code{options = list(port = 8080)}.}
 }
 \value{
-A Shiny app object; printing it (or calling this at the console)
-launches the app.
+With \code{launch = FALSE}, a Shiny app object. Otherwise the app runs
+until it is stopped, and \code{NULL} is returned invisibly.
 }
 \description{
 Three tabs: the PCT stop rule for one patient's serial values, renal dose
@@ -22,6 +26,11 @@ uploaded cohort.
 Research and educational use only; not a medical device. Uploaded files
 stay in the R session's memory and are never written to disk by the app, but
 do not upload identifiable patient data.
+
+By default the app starts straight away and opens in the system web
+browser, whether \code{run_app()} is typed at the console, run from a sourced
+script or called via \code{Rscript}. The R session is busy while the app runs;
+press Esc (or Ctrl+C in a terminal) to stop it.
 }
 \examples{
 if (interactive()) run_app()

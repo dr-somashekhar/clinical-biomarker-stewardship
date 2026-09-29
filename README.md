@@ -111,10 +111,12 @@ An interactive dashboard with three tabs: the PCT stop rule for one patient's se
 
 ```r
 install.packages("shiny")   # the app's only extra dependency
-pctsteward::run_app()
+pctsteward::run_app()       # opens in your web browser; press Esc in R to stop
 ```
 
-To deploy to Shiny Server, shinyapps.io or Posit Connect, install the package on the server from GitHub (`remotes::install_github("dr-somashekhar/clinical-biomarker-stewardship")`) and point it at `inst/app/`. Uploaded CSVs stay in the R session's memory and are never written to disk by the app, but upload synthetic or fully de-identified data only.
+This works from the R console, RStudio (including the Source button) and the command line (`Rscript -e "pctsteward::run_app()"`).
+
+To deploy to Shiny Server, shinyapps.io or Posit Connect, install the package on the server from GitHub (`remotes::install_github("dr-somashekhar/clinical-biomarker-stewardship")`) and point it at `inst/app/`, which calls `run_app(launch = FALSE)`. Uploaded CSVs stay in the R session's memory and are never written to disk by the app, but upload synthetic or fully de-identified data only.
 
 ## Repository Contents
 | Path | Purpose |
